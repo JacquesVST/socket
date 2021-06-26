@@ -56,12 +56,12 @@ function draw() {
 
 function mouseDragged(event) {
   console.log(event);
-  if(
+  if (
     (pmouseX >= 0) &&
     (pmouseX < canvasSize) &&
     (pmouseY >= 0) &&
     (pmouseY < canvasSize)
-  ){
+  ) {
     currentX = Math.floor(pmouseX / pixelSize);
     currentY = Math.floor(pmouseY / pixelSize);
 
