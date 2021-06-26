@@ -1,10 +1,14 @@
 let matriz = [];
 let pixelSize = 20;
-let size = 64;
+let size = 50;
 let canvasSize = pixelSize * size;
 
 let currentX;
 let currentY;
+
+let serverUrl = 'http://localhost:3030'
+
+var socket = io(serverUrl)
 
 function setup() {
   createCanvas(canvasSize, canvasSize);
@@ -15,8 +19,8 @@ function setup() {
     for (let j = 0; j < size; j++) {
       let pixel = {
         size: pixelSize,
-        fill: color(255),
-        stroke: color(0),
+        fill: '#ffffff',
+        stroke: '#000000',
         lowerLimits: {
           x: i * pixelSize,
           y: j * pixelSize,
@@ -38,24 +42,36 @@ function setup() {
       matriz[i][j] = pixel;
     }
   }
+
+  socket.on('drawing', (data) => {
+    matriz[data.index.row][data.index.column] = data;
+    drawPixel(data);
+  });
 }
 
 function draw() {
   if (currentX >= 0 && currentY >= 0) {
     let currentPixel = matriz[currentX][currentY];
-    fill(currentPixel.fill);
-    stroke(currentPixel.stroke);
-    rect(
-      currentPixel.lowerLimits.x,
-      currentPixel.lowerLimits.y,
-      pixelSize,
-      pixelSize
-    );
+    drawPixel(currentPixel);
   }
 }
 
-function mouseDragged(event) {
-  console.log(event);
+function mouseDragged(e) {
+  if (e.isTrusted) {
+    updateTileMatrix()
+  }
+}
+
+function mouseClicked(e) {
+  if (e.isTrusted) {
+    updateTileMatrix()
+  }
+
+}
+
+function updateTileMatrix() {
+  let colorPicker = document.getElementById('hidden-picker');
+
   if (
     (pmouseX >= 0) &&
     (pmouseX < canvasSize) &&
@@ -65,6 +81,22 @@ function mouseDragged(event) {
     currentX = Math.floor(pmouseX / pixelSize);
     currentY = Math.floor(pmouseY / pixelSize);
 
-    matriz[currentX][currentY].fill = color(255, 0, 0);
+    matriz[currentX][currentY].fill = colorPicker.value;
+    socket.emit('drawing', matriz[currentX][currentY]);
   }
+
+  
 }
+
+function drawPixel(currentPixel) {
+  console.log(currentPixel)
+  fill(color(currentPixel.fill));
+  stroke(color(currentPixel.stroke));
+  rect(
+    currentPixel.lowerLimits.x,
+    currentPixel.lowerLimits.y,
+    currentPixel.size,
+    currentPixel.size
+  );
+}
+
